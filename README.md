@@ -2,4 +2,11 @@
 
 ## Purpose
 
-- Using iRRAM and iRRAMx to get precise checking for braid's eigenvalue
+- Precise checking for Eigenvalues of Braid's Burau representation 
+
+
+## Library used
+
+- realcomputation/iRRAMx
+
+  
