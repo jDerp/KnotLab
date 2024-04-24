@@ -5,115 +5,195 @@ using std::vector;
 struct Lpolynomial
     {
         int mindeg, maxdeg;
-        vector<int> coeflist;
+        vector<int> coeflist; // maxdeg -> mindeg
+
         // poly(e^(2*pi*(m/n)*i))
         COMPLEX subs(int m, int n){
-            int deg = mindeg;
+            int deg = maxdeg;
             COMPLEX ans = COMPLEX(0, 0);
             
             for(auto x: coeflist){
                 // cout << x << " ";
                 ans = ans + COMPLEX(x)*exp(COMPLEX(0, REAL(2*deg*m) * pi() / REAL(n)));
-                deg++;
+                deg--;
             }
             // cout << "\n";
-            assert(deg == maxdeg + 1);
+            assert(deg == mindeg - 1);
             return ans;
         }
+        
                 
     };
-POLYNOMIAL det(vector<vector<POLYNOMIAL>> &MAT, vector<int> &perm, int row){
-    int n = perm.size();
-    if(n == 2){
-        return MAT[row][perm[0]] * MAT[row+1][perm[1]] - MAT[row+1][perm[0]] * MAT[row][perm[1]];
+
+Lpolynomial operator + (const Lpolynomial &m, const Lpolynomial &n){
+    Lpolynomial sum = {min(m.mindeg, n.mindeg), max(m.maxdeg, n.maxdeg), vector<int>(max(m.maxdeg, n.maxdeg) - min(m.mindeg, n.mindeg) + 1, 0)};
+    for(int i = 0; i <= m.maxdeg - m.mindeg; i++){
+        sum.coeflist[sum.maxdeg - m.maxdeg + i] += m.coeflist[i];
     }
-    POLYNOMIAL ans = POLYNOMIAL();
-    for(int i = 0; i < n; i++){
-        int pos = perm[i];
-        perm.erase(perm.begin()+i);
-        POLYNOMIAL minor;
-        POLYNOMIAL minor = det(MAT, perm, row+1);
-        perm.insert(perm.begin()+i, pos);
-        if((row+i) % 2) ans = ans + MAT[row][perm[i]]*minor;
-        else            ans = ans - MAT[row][perm[i]]*minor;
+    for(int j = 0; j <= n.maxdeg - n.mindeg; j++){
+        sum.coeflist[sum.maxdeg - n.maxdeg + j] += n.coeflist[j];
+    }
+    while(sum.mindeg < 0 && sum.coeflist.back() == 0){
+        sum.mindeg++;
+        sum.coeflist.pop_back();
+    }
+    while(sum.maxdeg > 0 && sum.coeflist.front() == 0){
+        sum.maxdeg--;
+        sum.coeflist.erase(sum.coeflist.begin());
     }
     
+    return sum;
+}
+
+Lpolynomial operator * (const Lpolynomial &m, const Lpolynomial &n){
+    Lpolynomial product = {m.mindeg + n.mindeg, m.maxdeg + n.maxdeg, vector<int>(m.maxdeg + n.maxdeg - m.mindeg - n.mindeg + 1, 0)};
+    for(int i = 0; i <= m.maxdeg - m.mindeg; i++){
+        for(int j = 0; j <= n.maxdeg - n.mindeg; j++){
+            product.coeflist[i + j] += m.coeflist[i]*n.coeflist[j];
+        }
+    }
+    while(product.mindeg < 0 && product.coeflist.back() == 0){
+        product.mindeg++;
+        product.coeflist.pop_back();
+    }
+    while(product.maxdeg > 0 && product.coeflist.front() == 0){
+        product.maxdeg--;
+        product.coeflist.erase(product.coeflist.begin());
+    }
+    
+    return product;
 }
     
 void compute(){
     int MATDIM;
-    vector<vector<Lpolynomial>> POLYNOMIALMAT;
-    vector<vector<COMPLEX>> COMPLEXMAT;
-    cout << "Input matrix dimension : ";
+    
+    cout << "Input n : ";
     cin >> MATDIM;
-    for(int i = 0; i < MATDIM; i++){
-        POLYNOMIALMAT.push_back({});
-        for(int j = 0; j < MATDIM; j++){
-            int mindeg, maxdeg;
-            int coef;
-            vector<int> poly;
-            // a_0 + a_1x + ... + a_dx^d
-            cin >> mindeg >> maxdeg;
-            for(int k = mindeg; k <= maxdeg; k++){
-                cin >> coef;
-                poly.push_back(coef);
-            }
-            POLYNOMIALMAT[i].push_back({mindeg, maxdeg, poly});
-        }
-    }
-    int m, n;
-    cin >> m >> n;
-    for(int i = 0; i < MATDIM; i++){
-        COMPLEXMAT.push_back({});
-        for(int j = 0; j < MATDIM; j++){
-            COMPLEXMAT[i].push_back(POLYNOMIALMAT[i][j].subs(m, n));
-            // cout << real(COMPLEXMAT[i][j]) << " " << imag(COMPLEXMAT[i][j]) << " ";
-        }
-        // cout << "\n";
-    }
-    // cout << "ggggg\n";
-    vector<vector<POLYNOMIAL>> EIGENMAT;
-    for(int i = 0; i < MATDIM; i++){
-        EIGENMAT.push_back({});
-        for(int j = 0; j < MATDIM; j++){
-            vector<COMPLEX> temp;
-            temp.push_back(COMPLEXMAT[i][j]);
-            if(i == j){
-                temp.push_back(COMPLEX(-1));
-                EIGENMAT[i].push_back(POLYNOMIAL(1, temp));
-            }
-            else{
-                EIGENMAT[i].push_back(POLYNOMIAL(0, temp));
-            }
-        }
-        // cout << "\n";
+    MATDIM--;
 
-    }
-    vector<COMPLEX> root;
-    if(MATDIM == 2){
-        const POLYNOMIAL charpoly = (EIGENMAT[0][0])*(EIGENMAT[1][1]) - (EIGENMAT[0][1])*(EIGENMAT[1][0]);
-        // const POLYNOMIAL charpoly = POLYNOMIAL(2, {COMPLEX(-30, 7), COMPLEX(-7, -1), COMPLEX(1)});
-        cout << charpoly << "\n";
-        root = roots(charpoly);
-    }
-    if(MATDIM == 3){
-        const POLYNOMIAL charpoly = EIGENMAT[0][0]*EIGENMAT[1][1]*EIGENMAT[2][2]
-                + EIGENMAT[0][1]*EIGENMAT[1][2]*EIGENMAT[2][0]
-                + EIGENMAT[0][2]*EIGENMAT[1][0]*EIGENMAT[2][1]
-                - EIGENMAT[0][0]*EIGENMAT[1][2]*EIGENMAT[2][1]
-                - EIGENMAT[0][1]*EIGENMAT[1][0]*EIGENMAT[2][2]
-                - EIGENMAT[0][2]*EIGENMAT[1][1]*EIGENMAT[2][0];
-        root = roots(charpoly);
+    vector<vector<Lpolynomial>> POLYNOMIALMAT = vector<vector<Lpolynomial>>(MATDIM, vector<Lpolynomial>(MATDIM, Lpolynomial({0, 0, {0}})));
+    // vector<vector<COMPLEX>> COMPLEXMAT;
+
+    for(int i = 0; i < MATDIM; i++){
+        POLYNOMIALMAT[i][i] = Lpolynomial({0, 0, {1}});
     }
 
-    else{
-        vector<int> perm;
+    //Burau Representation of Braids
+
+    int braid_num;
+    cout << "Input number of braids : ";
+    cin >> braid_num;
+    assert(braid_num > 0);
+
+    cout << "Input braids : ";
+    while(braid_num--){
+        int braid;
+        cin >> braid;
+
+        if(braid > MATDIM || braid < -MATDIM || braid == 0){
+            cout << "ERROR: Braid out of bound, please input again.\n";
+            return ;
+        }
+
+        vector<vector<Lpolynomial>> RESULTMAT = vector<vector<Lpolynomial>>(MATDIM, vector<Lpolynomial>(MATDIM, Lpolynomial({0, 0, {0}})));
+        vector<vector<Lpolynomial>> BRAIDMAT = vector<vector<Lpolynomial>>(MATDIM, vector<Lpolynomial>(MATDIM, Lpolynomial({0, 0, {0}})));
+        
         for(int i = 0; i < MATDIM; i++){
-            perm.push_back(i);
+            BRAIDMAT[i][i] = Lpolynomial({0, 0, {1}});
         }
-        const POLYNOMIAL charpoly = det(EIGENMAT, perm, 0);
-        root = roots(charpoly);
+
+        if(braid > 0){
+            BRAIDMAT[braid-1][braid-1] = Lpolynomial({0, 1, {-1, 0}}); // -t
+            if(braid != 1)  BRAIDMAT[braid-1][braid-2] = Lpolynomial({0, 1, {1, 0}}); // t
+            if(braid != MATDIM) BRAIDMAT[braid-1][braid] = Lpolynomial({0, 0, {1}}); // 1
+        }
+
+        else if(braid < 0){
+            braid = -braid;
+            BRAIDMAT[braid-1][braid-1] = Lpolynomial({-1, 0, {0, -1}}); // -t^-1
+            if(braid != 1)  BRAIDMAT[braid-1][braid-2] = Lpolynomial({0, 0, {1}}); // 1
+            if(braid != MATDIM) BRAIDMAT[braid-1][braid] = Lpolynomial({-1, 0, {0, 1}}); // t^-1
+        }
+
+        for(int i = 0; i < MATDIM; i++){
+            for(int j = 0; j < MATDIM; j++){
+                for(int k = 0; k < MATDIM; k++){
+                    RESULTMAT[i][j] = RESULTMAT[i][j] + (POLYNOMIALMAT[i][k] * BRAIDMAT[k][j]);
+                }
+            }
+        }
+
+        POLYNOMIALMAT = RESULTMAT;
+
     }
+
+    for(auto x: POLYNOMIALMAT){
+        for(auto y: x){
+            cout << y.mindeg << ", " << y.maxdeg << ", ";
+            for(auto z: y.coeflist){
+                cout << z << " ";
+            }
+            cout << "| ";
+        }
+        cout << "\n";
+    }
+
+    // Faddeev-Lavierrier Characteristic Polynomial
+
+    vector<Lpolynomial> poly_charpoly;
+    vector<vector<Lpolynomial>> CMAT = POLYNOMIALMAT;
+    poly_charpoly.push_back({0, 0, {1}});
+    for(int i = 0; i < MATDIM; i++){
+        if(i > 0){
+            // C = A*(C + c_prev*I)
+            vector<vector<Lpolynomial>> RESULTMAT = vector<vector<Lpolynomial>>(MATDIM, vector<Lpolynomial>(MATDIM, Lpolynomial({0, 0, {0}})));
+
+            for(int i = 0; i < MATDIM; i++){
+                for(int j = 0; j < MATDIM; j++){
+                    for(int k = 0; k < MATDIM; k++){
+                        if(k == j)  RESULTMAT[i][j] = RESULTMAT[i][j] + (POLYNOMIALMAT[i][k] * (poly_charpoly.back() + CMAT[k][j]));
+                        else        RESULTMAT[i][j] = RESULTMAT[i][j] + (POLYNOMIALMAT[i][k] * CMAT[k][j]);
+                    }
+                }
+            }
+            CMAT = RESULTMAT;
+        }
+
+        Lpolynomial charpolycoef = {0, 0, {0}};
+
+        //c_i = -tr(C)/i
+        for(int j = 0; j < MATDIM; j++){
+            charpolycoef = charpolycoef + CMAT[j][j];
+        }
+        for(auto &x: charpolycoef.coeflist){
+            x /= -(i+1);
+        }
+        poly_charpoly.push_back(charpolycoef);
+    }
+
+    // for(auto x: poly_charpoly){
+    //     cout << x.mindeg << " " << x.maxdeg << " ";
+    //     for(auto y: x.coeflist){
+    //         cout << y << " ";
+    //     }
+    //     cout << "\n";
+    // }
+
+    // Complex Substitution
+    
+    vector<COMPLEX> complex_charpoly;
+    int m, n;
+    cout << "Input m n for e^(2*pi*i*m/n): ";
+    cin >> m >> n;
+    for(auto x: poly_charpoly){
+        complex_charpoly.push_back(x.subs(m,n));
+    }
+
+    // Root Calculation 
+
+    vector<COMPLEX> root;
+    POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+    root = roots(charpoly);
     for(auto x: root){
         cout << real(x) << " " << imag(x) << "\n";
     }
