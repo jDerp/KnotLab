@@ -2,28 +2,27 @@
 #include "iRRAMx/polynomial.hpp"
 using namespace iRRAM;
 using std::vector;
-struct Lpolynomial
-    {
-        int mindeg, maxdeg;
-        vector<int> coeflist; // maxdeg -> mindeg
+struct Lpolynomial{
+    int mindeg, maxdeg;
+    vector<int> coeflist; // maxdeg -> mindeg
 
-        // poly(e^(2*pi*(m/n)*i))
-        COMPLEX subs(int m, int n){
-            int deg = maxdeg;
-            COMPLEX ans = COMPLEX(0, 0);
-            
-            for(auto x: coeflist){
-                // cout << x << " ";
-                ans = ans + COMPLEX(x)*exp(COMPLEX(0, REAL(2*deg*m) * pi() / REAL(n)));
-                deg--;
-            }
-            // cout << "\n";
-            assert(deg == mindeg - 1);
-            return ans;
-        }
+    // poly(e^(2*pi*(m/n)*i))
+    COMPLEX subs(int m, int n){
+        int deg = maxdeg;
+        COMPLEX ans = COMPLEX(0, 0);
         
-                
-    };
+        for(auto x: coeflist){
+            // cout << x << " ";
+            ans = ans + COMPLEX(x)*exp(COMPLEX(0, REAL(2*deg*m) * pi() / REAL(n)));
+            deg--;
+        }
+        // cout << "\n";
+        assert(deg == mindeg - 1);
+        return ans;
+    }
+    
+            
+};
 
 Lpolynomial operator + (const Lpolynomial &m, const Lpolynomial &n){
     Lpolynomial sum = {min(m.mindeg, n.mindeg), max(m.maxdeg, n.maxdeg), vector<int>(max(m.maxdeg, n.maxdeg) - min(m.mindeg, n.mindeg) + 1, 0)};
@@ -127,16 +126,16 @@ void compute(){
 
     }
 
-    for(auto x: POLYNOMIALMAT){
-        for(auto y: x){
-            cout << y.mindeg << ", " << y.maxdeg << ", ";
-            for(auto z: y.coeflist){
-                cout << z << " ";
-            }
-            cout << "| ";
-        }
-        cout << "\n";
-    }
+    // for(auto x: POLYNOMIALMAT){
+    //     for(auto y: x){
+    //         cout << y.mindeg << ", " << y.maxdeg << ", ";
+    //         for(auto z: y.coeflist){
+    //             cout << z << " ";
+    //         }
+    //         cout << "| ";
+    //     }
+    //     cout << "\n";
+    // }
 
     // Faddeev-Lavierrier Characteristic Polynomial
 
@@ -195,7 +194,7 @@ void compute(){
     POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
     root = roots(charpoly);
     for(auto x: root){
-        cout << real(x) << " " << imag(x) << "\n";
+        cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
     }
     
 }
