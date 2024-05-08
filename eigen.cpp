@@ -64,7 +64,7 @@ Lpolynomial operator * (const Lpolynomial &m, const Lpolynomial &n){
 }
     
 void compute(){
-    int MATDIM;
+    int MATDIM; // n-1
     
     cout << "Input n : ";
     cin >> MATDIM;
@@ -80,11 +80,11 @@ void compute(){
     //Burau Representation of Braids
 
     int braid_num;
-    cout << "Input number of braids : ";
+    cout << "Input number of braid generators : ";
     cin >> braid_num;
     assert(braid_num > 0);
 
-    cout << "Input braids : ";
+    cout << "Input braid : ";
     while(braid_num--){
         int braid;
         cin >> braid;
@@ -137,7 +137,7 @@ void compute(){
     //     cout << "\n";
     // }
 
-    // Faddeev-Lavierrier Characteristic Polynomial
+    // Faddeev-LaVerrier Characteristic Polynomial
 
     vector<Lpolynomial> poly_charpoly;
     vector<vector<Lpolynomial>> CMAT = POLYNOMIALMAT;
@@ -177,24 +177,101 @@ void compute(){
     //     }
     //     cout << "\n";
     // }
+    const int prec = 20;
 
-    // Complex Substitution
-    
-    vector<COMPLEX> complex_charpoly;
-    int m, n;
-    cout << "Input m n for e^(2*pi*i*m/n): ";
-    cin >> m >> n;
-    for(auto x: poly_charpoly){
-        complex_charpoly.push_back(x.subs(m,n));
+    int mode;
+    cout << "(1) calculate EVs or\n(2) test irreducibility condition: ";
+    cin >> mode;
+
+    if(mode == 1){
+        int p, q;
+        cout << "Input \"p q\" for e^(2*pi*i*p/q): ";
+        cin >> p >> q;
+
+        // Complex Substitution
+
+        vector<COMPLEX> complex_charpoly;
+
+        for(auto x: poly_charpoly){
+            complex_charpoly.push_back(x.subs(p,q));
+        }
+
+        // Root Calculation 
+
+        vector<COMPLEX> root;
+        POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+        root = roots(charpoly);
+        for(auto x: root){
+            cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+        }
+
     }
+    else{
+        for(int q = MATDIM+2; q <= 50; q++){
+            for(int p = q/(MATDIM+1) + 1; MATDIM*p <= q; p++){
 
-    // Root Calculation 
+                if(std::__gcd(p, q) != 1)    continue;
 
-    vector<COMPLEX> root;
-    POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
-    root = roots(charpoly);
-    for(auto x: root){
-        cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+                // Complex Substitution
+
+                vector<COMPLEX> complex_charpoly;
+
+                for(auto x: poly_charpoly){
+                    complex_charpoly.push_back(x.subs(p,q));
+                }
+
+                cout << "calculating " << p << " / " << q << "...\n";
+
+                // Root Calculation 
+
+                vector<COMPLEX> root;
+                POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+                root = roots(charpoly);
+                for(auto x: root){
+                    cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+                }
+
+                // Root Testing
+
+                // Test Unit Circle
+                // vector<COMPLEX> unit;
+                COMPLEX non_unit; bool flag = false;
+                for(auto x: root){
+                    if(choose((abs(x) - REAL(1) < 0) || (0 < abs(x) - REAL(1)), (abs(x) - REAL(1) < power(2, -prec)) && (-power(2, -prec) < abs(x) - REAL(1))) == 1) {
+                        non_unit = x;
+                        flag = true;
+                        // cout << real(non_unit) << " + " << imag(non_unit) << " i with abs = " << abs(non_unit) << "\n";
+                        break;
+                    }
+                }
+                if(!flag){
+                    cout << "no non unit norm for " << p << " / " << q << "\n";
+                    continue;
+                }
+                // cout << "Unit size Eigenvalue(s):\n";
+                // for(auto x: unit){
+                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+                // }
+
+                // cout << "Non-unit size Eigenvalue(s):\n";
+                // for(auto x: non_unit){
+                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+                // }
+                
+                REAL gamma = sin(REAL(MATDIM*p*pi())/REAL(q))/sin(REAL(p*pi())/REAL(q));
+                COMPLEX center = -exp(COMPLEX(0, REAL((MATDIM+1) * p) * pi() / REAL(q))) / gamma;
+                REAL dist = abs(non_unit - center);
+                REAL disksize = sqrt((REAL(1)/(gamma*gamma)) - 1);
+
+                // cout << dist << " " << disksize << "\n";
+                
+                if(choose(dist - disksize <= pow(2, -prec), dist - disksize > 0) == 1){
+                    cout << p << " / " << q << " passed the test!\n";
+                }
+                else{
+                    cout << p << " / " << q << " failed\n";
+                }
+            }
+        }
     }
-    
 }
