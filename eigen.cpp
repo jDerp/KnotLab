@@ -2,6 +2,11 @@
 #include "iRRAMx/polynomial.hpp"
 using namespace iRRAM;
 using std::vector;
+// using std::chrono::high_resolution_clock;
+// using std::chrono::duration_cast;
+// using std::chrono::duration;
+// using std::chrono::milliseconds;
+
 struct Lpolynomial{
     int mindeg, maxdeg;
     vector<int> coeflist; // maxdeg -> mindeg
@@ -66,7 +71,7 @@ Lpolynomial operator * (const Lpolynomial &m, const Lpolynomial &n){
 void compute(){
     int MATDIM; // n-1
     
-    cout << "Input n : ";
+    cout << "Input n:\n";
     cin >> MATDIM;
     MATDIM--;
 
@@ -80,11 +85,11 @@ void compute(){
     //Burau Representation of Braids
 
     int braid_num;
-    cout << "Input number of braid generators : ";
+    cout << "Input number of braid generators:\n";
     cin >> braid_num;
     assert(braid_num > 0);
 
-    cout << "Input braid : ";
+    cout << "Input braid generators:\n";
     while(braid_num--){
         int braid;
         cin >> braid;
@@ -177,15 +182,21 @@ void compute(){
     //     }
     //     cout << "\n";
     // }
-    const int prec = 20;
+    int prec = 20;
 
-    int mode;
-    cout << "(1) calculate EVs or\n(2) test irreducibility condition: ";
-    cin >> mode;
-
+    int mode = 0;
+    
+    while(mode != 1 && mode != 2){
+        cout << "(1) calculate EVs\n(2) test reducibility condition\n(3) test exchangeability condition\n(4) set precision 2^-prec (current prec = " << prec << ")\n";
+        cin >> mode;
+        if(mode == 4){
+            cout << "Input prec:\n";
+            cin >> prec;
+        }
+    }
     if(mode == 1){
         int p, q;
-        cout << "Input \"p q\" for e^(2*pi*i*p/q): ";
+        cout << "Input \"p q\" for e^(2*pi*i*p/q):\n";
         cin >> p >> q;
 
         // Complex Substitution
@@ -200,13 +211,24 @@ void compute(){
 
         vector<COMPLEX> root;
         POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+
+        // cout << charpoly << "\n";
+        // auto t1 = high_resolution_clock::now();
         root = roots(charpoly);
+        // auto t2 = high_resolution_clock::now();
+        
+        // auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
         for(auto x: root){
             cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
         }
 
+        // cout << "time: " << ms_int.count() << " ms\n";
     }
     else{
+        bool irr = 0, exch = 0;
+        if(mode == 2) exch = 1;
+        if(mode == 3) irr = 1;
         for(int q = MATDIM+2; q <= 50; q++){
             for(int p = q/(MATDIM+1) + 1; MATDIM*p <= q; p++){
 
@@ -226,10 +248,25 @@ void compute(){
 
                 vector<COMPLEX> root;
                 POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+
+                // cout << charpoly << "\n";
+                // auto t1 = high_resolution_clock::now();
                 root = roots(charpoly);
-                for(auto x: root){
-                    cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
-                }
+                // auto t2 = high_resolution_clock::now();
+        
+                // auto ms_int = duration_cast<milliseconds>(t2 - t1);
+                
+                // for(auto x: root){
+                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
+                // }
+
+                // REAL min_sep = 1000000;
+                // for(int i = 0; i < root.size(); i++){
+                //     for(int j = i+1; j < root.size(); j++){
+                //         min_sep = min(min_sep, abs(root[i] - root[j]));
+                //     }
+                // }
+                // cout << "minimum root separation is "  << " with time " << ms_int.count() << " ms\n";
 
                 // Root Testing
 
@@ -259,19 +296,39 @@ void compute(){
                 // }
                 
                 REAL gamma = sin(REAL(MATDIM*p*pi())/REAL(q))/sin(REAL(p*pi())/REAL(q));
-                COMPLEX center = -exp(COMPLEX(0, REAL((MATDIM+1) * p) * pi() / REAL(q))) / gamma;
-                REAL dist = abs(non_unit - center);
-                REAL disksize = sqrt((REAL(1)/(gamma*gamma)) - 1);
 
-                // cout << dist << " " << disksize << "\n";
-                
-                if(choose(dist - disksize <= pow(2, -prec), dist - disksize > 0) == 1){
-                    cout << p << " / " << q << " passed the test!\n";
+                // Reducibility Testing 
+
+                if(!irr){
+                    COMPLEX center = -exp(COMPLEX(0, REAL((MATDIM+1) * p) * pi() / REAL(q))) / gamma;
+                    REAL dist = abs(non_unit - center);
+                    REAL disksize = sqrt((REAL(1)/(gamma*gamma)) - 1);
+
+                    if(choose(dist - disksize <= 0, dist - disksize > -pow(2, -prec)) == 1){
+                        cout << p << " / " << q << " failed irreducibility test\n";
+                    }
+                    else{
+                        cout << p << " / " << q << " passed irreducibility test!\n";
+                        irr = 1;
+                    }
                 }
-                else{
-                    cout << p << " / " << q << " failed\n";
+
+                // Exchangablity Testing 
+
+                if(!exch){
+                    REAL cond = abs(COMPLEX(1) - non_unit) - (1 + abs(non_unit))*sqrt(1 - gamma*gamma);
+                    if(choose(cond <= 0, cond > -pow(2, -prec)) == 1){
+                        cout << p << " / " << q << " failed nonexchangeability test\n";
+                    }
+                    else{
+                        cout << p << " / " << q << " passed nonexchangeability test!\n";
+                        exch = 1;
+                    }
                 }
+
+                if(irr && exch) return;
             }
         }
+
     }
 }
