@@ -2,16 +2,11 @@
 #include "iRRAMx/polynomial.hpp"
 using namespace iRRAM;
 using std::vector;
-// using std::chrono::high_resolution_clock;
-// using std::chrono::duration_cast;
-// using std::chrono::duration;
-// using std::chrono::milliseconds;
 
 struct Lpolynomial{
     int mindeg, maxdeg;
     vector<int> coeflist; // maxdeg -> mindeg
 
-    // poly(e^(2*pi*(m/n)*i))
     COMPLEX subs(int m, int n){
         int deg = maxdeg;
         COMPLEX ans = COMPLEX(0, 0);
@@ -76,7 +71,6 @@ void compute(){
     MATDIM--;
 
     vector<vector<Lpolynomial>> POLYNOMIALMAT = vector<vector<Lpolynomial>>(MATDIM, vector<Lpolynomial>(MATDIM, Lpolynomial({0, 0, {0}})));
-    // vector<vector<COMPLEX>> COMPLEXMAT;
 
     for(int i = 0; i < MATDIM; i++){
         POLYNOMIALMAT[i][i] = Lpolynomial({0, 0, {1}});
@@ -131,17 +125,6 @@ void compute(){
 
     }
 
-    // for(auto x: POLYNOMIALMAT){
-    //     for(auto y: x){
-    //         cout << y.mindeg << ", " << y.maxdeg << ", ";
-    //         for(auto z: y.coeflist){
-    //             cout << z << " ";
-    //         }
-    //         cout << "| ";
-    //     }
-    //     cout << "\n";
-    // }
-
     // Faddeev-LaVerrier Characteristic Polynomial
 
     vector<Lpolynomial> poly_charpoly;
@@ -175,13 +158,6 @@ void compute(){
         poly_charpoly.push_back(charpolycoef);
     }
 
-    // for(auto x: poly_charpoly){
-    //     cout << x.mindeg << " " << x.maxdeg << " ";
-    //     for(auto y: x.coeflist){
-    //         cout << y << " ";
-    //     }
-    //     cout << "\n";
-    // }
     int prec = 20;
 
     int mode = 0;
@@ -212,18 +188,11 @@ void compute(){
         vector<COMPLEX> root;
         POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
 
-        // cout << charpoly << "\n";
-        // auto t1 = high_resolution_clock::now();
         root = roots(charpoly);
-        // auto t2 = high_resolution_clock::now();
-        
-        // auto ms_int = duration_cast<milliseconds>(t2 - t1);
 
         for(auto x: root){
             cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
         }
-
-        // cout << "time: " << ms_int.count() << " ms\n";
     }
     else{
         bool irr = 0, exch = 0;
@@ -249,35 +218,16 @@ void compute(){
                 vector<COMPLEX> root;
                 POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
 
-                // cout << charpoly << "\n";
-                // auto t1 = high_resolution_clock::now();
                 root = roots(charpoly);
-                // auto t2 = high_resolution_clock::now();
-        
-                // auto ms_int = duration_cast<milliseconds>(t2 - t1);
-                
-                // for(auto x: root){
-                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
-                // }
-
-                // REAL min_sep = 1000000;
-                // for(int i = 0; i < root.size(); i++){
-                //     for(int j = i+1; j < root.size(); j++){
-                //         min_sep = min(min_sep, abs(root[i] - root[j]));
-                //     }
-                // }
-                // cout << "minimum root separation is "  << " with time " << ms_int.count() << " ms\n";
 
                 // Root Testing
 
                 // Test Unit Circle
-                // vector<COMPLEX> unit;
                 COMPLEX non_unit; bool flag = false;
                 for(auto x: root){
                     if(choose((abs(x) - REAL(1) < 0) || (0 < abs(x) - REAL(1)), (abs(x) - REAL(1) < power(2, -prec)) && (-power(2, -prec) < abs(x) - REAL(1))) == 1) {
                         non_unit = x;
                         flag = true;
-                        // cout << real(non_unit) << " + " << imag(non_unit) << " i with abs = " << abs(non_unit) << "\n";
                         break;
                     }
                 }
@@ -285,15 +235,6 @@ void compute(){
                     cout << "no non unit norm for " << p << " / " << q << "\n";
                     continue;
                 }
-                // cout << "Unit size Eigenvalue(s):\n";
-                // for(auto x: unit){
-                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
-                // }
-
-                // cout << "Non-unit size Eigenvalue(s):\n";
-                // for(auto x: non_unit){
-                //     cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
-                // }
                 
                 REAL gamma = sin(REAL(MATDIM*p*pi())/REAL(q))/sin(REAL(p*pi())/REAL(q));
 
