@@ -162,12 +162,15 @@ void compute(){
 
     int mode = 0;
     
-    while(mode != 1 && mode != 2){
-        cout << "(1) calculate EVs\n(2) test reducibility condition\n(3) test exchangeability condition\n(4) set precision 2^-prec (current prec = " << prec << ")\n";
+    while(mode != 1 && mode != 2 && mode != 3){
+        cout << "(1) calculate EVs\n(2) test reducibility condition\n(3) test exchangeability condition\n(4) set precision 2^-prec (current prec = " << prec << ")\n(5) exit\n";
         cin >> mode;
         if(mode == 4){
             cout << "Input prec:\n";
             cin >> prec;
+        }
+        if(mode == 5){
+            return ;
         }
     }
     if(mode == 1){
