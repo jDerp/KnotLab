@@ -201,8 +201,12 @@ void compute(){
         bool irr = 0, exch = 0;
         if(mode == 2) exch = 1;
         if(mode == 3) irr = 1;
-        for(int q = MATDIM+2; q <= 50; q++){
-            for(int p = q/(MATDIM+1) + 1; MATDIM*p <= q; p++){
+        int MINQ, MAXQ;
+        cout << "Input \"minq maxq\" for the range of q in e^(2*pi*i*p/q) to be tested:\n";
+        cin >> MINQ >> MAXQ;
+        MINQ = max(MINQ, MATDIM + 2);
+        for(int q = MINQ; q <= MAXQ; q++){
+            for(int p = q/(MATDIM+1) + 1; MATDIM*p < q; p++){
 
                 if(std::__gcd(p, q) != 1)    continue;
 
@@ -214,7 +218,7 @@ void compute(){
                     complex_charpoly.push_back(x.subs(p,q));
                 }
 
-                cout << "calculating " << p << " / " << q << "...\n";
+                cout << "testing " << p << " / " << q << "...\n";
 
                 // Root Calculation 
 
@@ -262,10 +266,10 @@ void compute(){
                 if(!exch){
                     REAL cond = abs(COMPLEX(1) - non_unit) - (1 + abs(non_unit))*sqrt(1 - gamma*gamma);
                     if(choose(cond <= 0, cond > -pow(2, -prec)) == 1){
-                        cout << p << " / " << q << " failed nonexchangeability test\n";
+                        cout << p << " / " << q << " failed unexchangeability test\n";
                     }
                     else{
-                        cout << p << " / " << q << " passed nonexchangeability test!\n";
+                        cout << p << " / " << q << " passed unexchangeability test!\n";
                         exch = 1;
                     }
                 }

@@ -70,7 +70,8 @@ unsigned choose_n(vector<LAZY_BOOLEAN> v){
     }
     
     else if(v.size() == 2){
-        return choose(v[0], v[1]);
+        // choose is 1-based 
+        return (choose(v[0], v[1]) - 1);
     }
     
     // inductive cases
@@ -83,10 +84,8 @@ unsigned choose_n(vector<LAZY_BOOLEAN> v){
 
         unsigned k = choose_n(v);
 
-        cout << v.size() << "\n";
-
         if(k == (v.size() - 1))
-            return k + choose(back2, back);
+            return k + (choose(back2, back) - 1);
         
         else
             return k;
@@ -188,18 +187,11 @@ void compute(){
         poly_charpoly.push_back(charpolycoef);
     }
 
-    // int prec = 20;
-
     int mode = 0;
     
     while(mode == 0){
         cout << "(1) calculate EVs\n(2) test reducibility condition\n(3) test exchangeability condition\n";
         cin >> mode;
-        // if(mode == 4){
-        //     cout << "Input prec:\n";
-        //     cin >> prec;
-        //     mode = 0;
-        // }
     }
     if(mode == 1){
         int p, q;
@@ -228,13 +220,16 @@ void compute(){
     else{
         vector<LAZY_BOOLEAN> conds;
         vector<std::pair<int, int>> ts;
-        int MAXQ = 25;
-        for(int q = MATDIM+2; q <= MAXQ; q++){
+        int MINQ, MAXQ;
+        cout << "Input \"minq maxq\" for the range of q in e^(2*pi*i*p/q) to be tested:\n";
+        cin >> MINQ >> MAXQ;
+        MINQ = max(MINQ, MATDIM + 2);
+        for(int q = MINQ; q <= MAXQ; q++){
             for(int p = q/(MATDIM+1) + 1; MATDIM*p < q; p++){
                 
                 if(std::__gcd(p, q) != 1)    continue;
 
-                cout << p << " / " << q << "\n";
+                cout << "testing " << p << " / " << q << "...\n";
                 
                 LAZY_BOOLEAN result = false;
 
@@ -257,8 +252,6 @@ void compute(){
 
                 for(auto x: root){
 
-                    // cout << real(x) << "\n";
-
                     // Reducibility Testing 
 
                     if(mode == 2){
@@ -277,12 +270,12 @@ void compute(){
                         result = result || ((abs(x) > REAL(1)) && (cond > 0));
                     }
                 }
-                
+
                 conds.push_back(result);
                 ts.push_back({p, q});
             }
         }
-        cout << conds.size() << "\n";
+        // cout << conds.size() << "\n";
         int k = choose_n(conds);
         cout << ts[k].first << " / " << ts[k].second;
         if(mode == 2)       cout << " passed irreducibility test\n";
