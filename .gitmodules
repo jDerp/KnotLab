@@ -1,0 +1,6 @@
+[submodule "iRRAM"]
+	path = iRRAM
+	url = https://github.com/fbrausse/iRRAM
+[submodule "iRRAMx"]
+	path = iRRAMx
+	url = https://github.com/realcomputation/iRRAMx
