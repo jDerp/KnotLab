@@ -1,4 +1,4 @@
-# Braid using Real Computation
+# Braid using Exact Real Computation
 
 ## Purpose
 
