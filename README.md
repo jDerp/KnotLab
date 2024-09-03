@@ -72,7 +72,8 @@ Run make to compile burau and burau_approx. It can also be used to compile other
 
 - testcases
 
-Testcases are formatted for burau.cpp in which "ir" is irreducible, "r" is reducible, "ne" is unexchangeable and "e" is exchangeable.
+Testcases are formatted for burau.cpp and burau_approx.cpp which "ir" is irreducible, "r" is reducible, "ne" is unexchangeable and "e" is exchangeable.
+The corresponding name of input files and output files into the program is used. 
 
 
 
