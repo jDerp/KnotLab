@@ -1,0 +1,11 @@
+Input n:
+Input number of braid generators:
+Input braid generators:
+(1) calculate EVs
+(2) test reducibility condition
+(3) test exchangeability condition
+(4) set precision 2^-prec (current prec = 20)
+(5) exit
+Input "minq maxq" for the range of q in e^(2*pi*i*p/q) to be tested:
+testing 2 / 7...
+2 / 7 passed irreducibility test!

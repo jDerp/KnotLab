@@ -1,0 +1,23 @@
+Input n:
+Input number of braid generators:
+Input braid generators:
+(1) calculate EVs
+(2) test reducibility condition
+(3) test exchangeability condition
+(4) set precision 2^-prec (current prec = 20)
+(5) exit
+Input "minq maxq" for the range of q in e^(2*pi*i*p/q) to be tested:
+testing 2 / 9...
+no non unit norm for 2 / 9
+testing 3 / 13...
+3 / 13 failed unexchangeability test
+testing 3 / 14...
+no non unit norm for 3 / 14
+testing 4 / 17...
+4 / 17 failed unexchangeability test
+testing 4 / 19...
+no non unit norm for 4 / 19
+testing 5 / 21...
+5 / 21 failed unexchangeability test
+testing 5 / 22...
+5 / 22 passed unexchangeability test!
