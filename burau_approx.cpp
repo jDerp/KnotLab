@@ -162,7 +162,7 @@ void compute(){
 
     int mode = 0;
     
-    while(mode != 1 && mode != 2 && mode != 3){
+    while(1){
         cout << "(1) calculate EVs\n(2) test reducibility condition\n(3) test exchangeability condition\n(4) set precision 2^-prec (current prec = " << prec << ")\n(5) exit\n";
         cin >> mode;
         if(mode == 4){
@@ -172,111 +172,113 @@ void compute(){
         if(mode == 5){
             return ;
         }
-    }
-    if(mode == 1){
-        int p, q;
-        cout << "Input \"p q\" for e^(2*pi*i*p/q):\n";
-        cin >> p >> q;
-
-        // Complex Substitution
-
-        vector<COMPLEX> complex_charpoly;
-
-        for(auto x: poly_charpoly){
-            complex_charpoly.push_back(x.subs(p,q));
-        }
-
-        // Root Calculation 
-
-        vector<COMPLEX> root;
-        POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
-
-        root = roots(charpoly);
-
-        for(auto x: root){
-            cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
-        }
-    }
-    else{
-        bool irr = 0, exch = 0;
-        if(mode == 2) exch = 1;
-        if(mode == 3) irr = 1;
-        int MINQ, MAXQ;
-        cout << "Input \"minq maxq\" for the range of q in e^(2*pi*i*p/q) to be tested:\n";
-        cin >> MINQ >> MAXQ;
-        MINQ = max(MINQ, MATDIM + 2);
-        for(int q = MINQ; q <= MAXQ; q++){
-            for(int p = q/(MATDIM+1) + 1; MATDIM*p < q; p++){
-
-                if(std::__gcd(p, q) != 1)    continue;
-
-                // Complex Substitution
-
-                vector<COMPLEX> complex_charpoly;
-
-                for(auto x: poly_charpoly){
-                    complex_charpoly.push_back(x.subs(p,q));
-                }
-
-                cout << "testing " << p << " / " << q << "...\n";
-
-                // Root Calculation 
-
-                vector<COMPLEX> root;
-                POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
-
-                root = roots(charpoly);
-
-                // Root Testing
-
-                // Test Unit Circle
-                COMPLEX non_unit; bool flag = false;
-                for(auto x: root){
-                    if(choose((abs(x) - REAL(1) < 0) || (0 < abs(x) - REAL(1)), (abs(x) - REAL(1) < power(2, -prec)) && (-power(2, -prec) < abs(x) - REAL(1))) == 1) {
-                        non_unit = x;
-                        flag = true;
-                        break;
-                    }
-                }
-                if(!flag){
-                    cout << "no non unit norm for " << p << " / " << q << "\n";
-                    continue;
-                }
-                
-                REAL gamma = sin(REAL(MATDIM*p*pi())/REAL(q))/sin(REAL(p*pi())/REAL(q));
-
-                // Reducibility Testing 
-
-                if(!irr){
-                    COMPLEX center = -exp(COMPLEX(0, REAL((MATDIM+1) * p) * pi() / REAL(q))) / gamma;
-                    REAL dist = abs(non_unit - center);
-                    REAL disksize = sqrt((REAL(1)/(gamma*gamma)) - 1);
-
-                    if(choose(dist - disksize <= 0, dist - disksize > -pow(2, -prec)) == 1){
-                        cout << p << " / " << q << " failed irreducibility test\n";
-                    }
-                    else{
-                        cout << p << " / " << q << " passed irreducibility test!\n";
-                        irr = 1;
-                    }
-                }
-
-                // Exchangablity Testing 
-
-                if(!exch){
-                    REAL cond = abs(COMPLEX(1) - non_unit) - (1 + abs(non_unit))*sqrt(1 - gamma*gamma);
-                    if(choose(cond <= 0, cond > -pow(2, -prec)) == 1){
-                        cout << p << " / " << q << " failed unexchangeability test\n";
-                    }
-                    else{
-                        cout << p << " / " << q << " passed unexchangeability test!\n";
-                        exch = 1;
-                    }
-                }
-
-                if(irr && exch) return;
+    
+        if(mode == 1){
+            int p, q;
+            cout << "Input \"p q\" for e^(2*pi*i*p/q):\n";
+            cin >> p >> q;
+    
+            // Complex Substitution
+    
+            vector<COMPLEX> complex_charpoly;
+    
+            for(auto x: poly_charpoly){
+                complex_charpoly.push_back(x.subs(p,q));
+            }
+    
+            // Root Calculation 
+    
+            vector<COMPLEX> root;
+            POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+    
+            root = roots(charpoly);
+    
+            for(auto x: root){
+                cout << real(x) << " + " << imag(x) << " i with abs = " << abs(x) << "\n";
             }
         }
-
+        if(mode == 2 || mode == 3){
+            bool irr = 0, exch = 0;
+            if(mode == 2) exch = 1;
+            if(mode == 3) irr = 1;
+            int MINQ, MAXQ;
+            cout << "Input \"minq maxq\" for the range of q in e^(2*pi*i*p/q) to be tested:\n";
+            cin >> MINQ >> MAXQ;
+            MINQ = max(MINQ, MATDIM + 2);
+            for(int q = MINQ; q <= MAXQ; q++){
+                for(int p = q/(MATDIM+1) + 1; MATDIM*p < q; p++){
+    
+                    if(std::__gcd(p, q) != 1)    continue;
+    
+                    // Complex Substitution
+    
+                    vector<COMPLEX> complex_charpoly;
+    
+                    for(auto x: poly_charpoly){
+                        complex_charpoly.push_back(x.subs(p,q));
+                    }
+    
+                    cout << "testing " << p << " / " << q << "...\n";
+    
+                    // Root Calculation 
+    
+                    vector<COMPLEX> root;
+                    POLYNOMIAL charpoly = POLYNOMIAL(MATDIM, complex_charpoly);
+    
+                    root = roots(charpoly);
+    
+                    // Root Testing
+    
+                    // Test Unit Circle
+                    COMPLEX non_unit; bool flag = false;
+                    for(auto x: root){
+                        if(choose((abs(x) - REAL(1) < 0) || (0 < abs(x) - REAL(1)), (abs(x) - REAL(1) < power(2, -prec)) && (-power(2, -prec) < abs(x) - REAL(1))) == 1) {
+                            non_unit = x;
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if(!flag){
+                        cout << "no non unit norm for " << p << " / " << q << "\n";
+                        continue;
+                    }
+                    
+                    REAL gamma = sin(REAL(MATDIM*p*pi())/REAL(q))/sin(REAL(p*pi())/REAL(q));
+    
+                    // Reducibility Testing 
+    
+                    if(!irr){
+                        COMPLEX center = -exp(COMPLEX(0, REAL((MATDIM+1) * p) * pi() / REAL(q))) / gamma;
+                        REAL dist = abs(non_unit - center);
+                        REAL disksize = sqrt((REAL(1)/(gamma*gamma)) - 1);
+    
+                        if(choose(dist - disksize <= 0, dist - disksize > -pow(2, -prec)) == 1){
+                            cout << p << " / " << q << " failed irreducibility test\n";
+                        }
+                        else{
+                            cout << p << " / " << q << " passed irreducibility test!\n";
+                            irr = 1;
+                        }
+                    }
+    
+                    // Exchangablity Testing 
+    
+                    if(!exch){
+                        REAL cond = abs(COMPLEX(1) - non_unit) - (1 + abs(non_unit))*sqrt(1 - gamma*gamma);
+                        if(choose(cond <= 0, cond > -pow(2, -prec)) == 1){
+                            cout << p << " / " << q << " failed unexchangeability test\n";
+                        }
+                        else{
+                            cout << p << " / " << q << " passed unexchangeability test!\n";
+                            exch = 1;
+                        }
+                    }
+    
+                    if(irr && exch) goto brk;
+                }
+            }
+            brk:
+            continue;
+        }
     }
 }
